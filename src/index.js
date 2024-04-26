@@ -104,12 +104,34 @@ app.post('/register', async (req, res) => {
         if (existingUser) {
             return res.status(400).json({ error: 'Ju ekzistoni i rregjistruar ne rregjistrin e studenteve!' });
         }
+
         await database('student').insert({
             NID,
             password,
             name,
             surname
         });
+        const currentDate = new Date().toISOString().slice(0, 10);
+        const coursesToAdd = [
+            { name: 'Mathematics', subscribed: false, otherInfo: 'Introduction to Calculus', subscribeDate: currentDate },
+            { name: 'Physics', subscribed: false, otherInfo: 'Mechanics and Thermodynamics', subscribeDate: currentDate },
+            { name: 'Literature', subscribed: false, otherInfo: 'World Literature', subscribeDate: currentDate },
+            { name: 'History', subscribed: false, otherInfo: 'Modern World History', subscribeDate: currentDate },
+            { name: 'Computer Science', subscribed: false, otherInfo: 'Introduction to Programming', subscribeDate: currentDate }
+        ];
+
+        const student_id = await database('student').select('id').where('NID', NID).first();
+
+        for (const course of coursesToAdd) {
+            await database('course').insert({
+                student_id: student_id.id,
+                name: course.name,
+                otherInfo: course.otherInfo,
+                subscribed: course.subscribed,
+                subscribeDate: course.subscribeDate
+            });
+        }
+
         res.status(201).json({ message: ' Ju u rregjistruat me sukses!' });
     } catch (error) {
         console.error('Error registering user:', error);
